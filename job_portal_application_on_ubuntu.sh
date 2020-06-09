@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Install Terrafrom and Kops in Ubuntu 18.04
+# Install PostgreSQL, Python, PIP, Git and Python Virtual Environment in Ubuntu 18.04
 # Install Jq
 
 sudo apt-get --yes update \
