@@ -5,10 +5,6 @@
 sudo apt-get --yes update \
 && sudo apt-get --yes install jq \
 && sudo apt-get --yes install unzip || log "ERROR: Failed update" $?
-TERRAFORM_VERSION=$(curl -s https://checkpoint-api.hashicorp.com/v1/check/terraform | jq -r -M '.current_version')
-TERRAFORM_URL="https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip" 
-
-AWS_CLI_URL="https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip"
 
 log()
 {
@@ -24,6 +20,19 @@ log()
 }
 
 # Download and setup required softwares for Job Portal application
+PostgreSQL_setup(){
+    log "INFO: Start Postgresql Installation"
+        echo "======================================================================================"
+    apt install postgresql postgresql-contrib -y
+}
+Python38_setup(){
+    log "INFO: Start Python Installation"
+        echo "======================================================================================"
+    apt install software-properties-common -y
+    add-apt-repository ppa:deadsnakes/ppa -y
+    apt install python3.8 -y 
+}
+
 Git_setup(){
     log "INFO: Start Git Installation"
         echo "======================================================================================"
@@ -48,65 +57,42 @@ Create_directory(){
     log "INFO: django directory creation Complete"
 }
 
-#Download and Setup Terraform
-terraform_setup(){
-    log "INFO: Download Terraform -> Version ${TERRAFORM_VERSION}"
-    curl -sLO ${TERRAFORM_URL} || log  "ERROR: Downlaod failed" $?
-    log "INFO: Download Complete"
-    unzip terraform_${TERRAFORM_VERSION}_linux_amd64.zip || log "ERROR: Unzipping terraform_${TERRAFORM_VERSION}_linux_amd64.zip" $?
-    chmod +x terraform || log "ERROR: Cant set the executable permission" $?
-    if [ -d '/usr/local/bin' ]; then
-        sudo mv terraform /usr/local/bin/terraform || log "ERROR: Moving Terraform Failed"  $?
-    else
-        log "ERROR: /usr/local/bin Directory Not found"
-    fi
-}
+#VERIFY ABOVE INSTALLED APPLICATIONS    
 
-#Download and Setup AWS_CLI
-aws_cli_setup(){
-    log "INFO: Download aws cli -> Version 2.0.6"
-    curl -sLO ${AWS_CLI_URL} || log  "ERROR: Downlaod failed" $?
-    log "INFO: Download Complete"
-    sudo mv awscli-exe-linux-x86_64.zip awscliv2.zip || log "ERROR: renaming file to readable name Failed" $?
-    unzip awscliv2.zip || log "ERROR: Unzipping awscliv2.zip" $?
-    ./aws/install || log "ERROR: Cant execute aws cli" $?
-}
 verify_install(){
  
+    log "INFO: VERIFY PostgreSQL version"
+    psql --version || log "ERROR: PostgreSQL verification failed" $?
+
+    log "INFO: VERIFY Python"
+    python3.8 --version || log "ERROR: Python 3.8 verification failed" $?
+
     log "INFO: VERIFY GITS"
     git --version || log "ERROR: GIT verification failed" $?
 
-    log "INFO: VERIFY PYTHON"
+    log "INFO: VERIFY PYTHON PIP3"
     pip3 --version || log "ERROR: kubectl verification failed" $?
 
     log "INFO: VERIFY libapache2-mod-wsgi-py3"
     dpkg -l | grep wsgi || log "ERROR: libapache2-mod-wsgi-py3 verification failed" $?
 
     log "INFO: VERIFY APACHE"
-    httpd -v || log "ERROR: Apache verification failed" $?
-
-    log "INFO: VERIFY TERRAFORM"
-    terraform --version || log "ERROR: terraform verification failed" $?
-
-    log "INFO: VERIFY AWS CLI"
-    aws --version || log "ERROR: aws cli verification failed" $?
+    apache2 -v  || log "ERROR: Apache verification failed" $?
 
     log "INFO: Validation Successful !!!"
-    rm -f terraform_0.11.13_linux_amd64.zip || log "ERROR: terraform zip Cleanup failed" $?
 
 }
-
+echo "======================================================================================"
+PostgreSQL_setup
+sleep 2
+echo "======================================================================================"
+Python38_setup
+sleep 2
 echo "======================================================================================"
 Git_setup
 sleep 2
 echo "======================================================================================"
 python_setup
-sleep 2
-echo "======================================================================================"
-terraform_setup
-sleep 2
-echo "======================================================================================"
-aws_cli_setup
 sleep 2
 echo "======================================================================================"
 verify_install
