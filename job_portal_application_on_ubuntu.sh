@@ -53,7 +53,7 @@ python_virtualenv_setup(){
 
 Create_directory(){
     log "INFO: Create a directory called django"
-    mkdir /home/django || log  "ERROR: django directory creation error" $?
+    mkdir /home/django/ || log  "ERROR: django directory creation error" $?
     log "INFO: django directory creation Complete"
 }
 
